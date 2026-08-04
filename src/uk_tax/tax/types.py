@@ -31,6 +31,14 @@ class TaxYearParameters:
     basic_rate: float
     higher_rate: float
     additional_rate: float
+    # Diverge from basic_rate/higher_rate/additional_rate from 6 April 2027
+    # (UK Finance Act 2026, enacted) — 22%/42%/47% vs non-savings' unchanged
+    # 20%/40%/45%. Equal to the non-savings triple for the 2026/27 base
+    # year only. Same band thresholds as non-savings — only the rate
+    # differs, so no separate width/threshold fields are needed.
+    savings_basic_rate: float
+    savings_higher_rate: float
+    savings_additional_rate: float
     starting_rate_for_savings_band: Real
     psa_basic_rate: Real
     psa_higher_rate: Real

@@ -120,11 +120,11 @@ def _savings_tax(non_savings: float, savings: float, total_income: float, earnin
     if psa_used > 0:
         charges.append(("savings", "psa", psa_used, 0.0))
     if at_lower > 0:
-        charges.append(("savings", "basic_rate", at_lower, params.basic_rate))
+        charges.append(("savings", "basic_rate", at_lower, params.savings_basic_rate))
     if at_higher > 0:
-        charges.append(("savings", "higher_rate", at_higher, params.higher_rate))
+        charges.append(("savings", "higher_rate", at_higher, params.savings_higher_rate))
     if at_additional > 0:
-        charges.append(("savings", "additional_rate", at_additional, params.additional_rate))
+        charges.append(("savings", "additional_rate", at_additional, params.savings_additional_rate))
 
     return {
         "charges": charges,

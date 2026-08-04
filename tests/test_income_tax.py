@@ -5,6 +5,8 @@ Allowance-taper edge cases. This is the sole source of truth for
 search.
 """
 
+from dataclasses import replace
+
 import pytest
 
 from uk_tax.money import Real
@@ -20,6 +22,11 @@ PARAMS = TaxYearParameters(
     basic_rate=0.20,
     higher_rate=0.40,
     additional_rate=0.45,
+    # 2026/27 base year — equal to non-savings. UK Finance Act 2026
+    # diverges these to 22/42/47 from 6 April 2027 (SPEC.md §3.2).
+    savings_basic_rate=0.20,
+    savings_higher_rate=0.40,
+    savings_additional_rate=0.45,
     starting_rate_for_savings_band=Real(5000),
     psa_basic_rate=Real(1000),
     psa_higher_rate=Real(500),
@@ -173,6 +180,26 @@ def test_nil_rate_slices_still_consume_basic_rate_band():
     assert psa_charge.amount.value == pytest.approx(500)
     savings_higher = next(c for c in result.charges if c.category == "savings" and c.band == "higher_rate")
     assert savings_higher.amount.value == pytest.approx(130)
+
+
+def test_savings_uses_its_own_rate_not_the_non_savings_rate():
+    # SPEC.md §3.2 — from 6 April 2027 the savings basic/higher/additional
+    # rates (22/42/47) diverge from non-savings (20/40/45 unchanged).
+    # Regression guard for the bug where income.py's _savings_tax read
+    # params.basic_rate/higher_rate/additional_rate (the non-savings
+    # triple) instead of its own savings_* fields — with PARAMS alone
+    # (both triples equal at 2026/27) that bug is invisible, so this uses
+    # a params fixture with the two triples set apart to prove the
+    # wiring, not just the number.
+    params_2027 = replace(
+        PARAMS,
+        savings_basic_rate=0.22,
+        savings_higher_rate=0.42,
+        savings_additional_rate=0.47,
+    )
+    result = compute_income_tax(Real(0), Real(20000), Real(0), params_2027)
+    basic_charge = next(c for c in result.charges if c.category == "savings" and c.band == "basic_rate")
+    assert basic_charge.rate == pytest.approx(0.22)
 
 
 def test_psa_band_boundary_is_strictly_greater_than_not_inclusive():
